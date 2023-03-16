@@ -109,6 +109,7 @@ export class oData {
                 node.tree.set(treeNode, newNode.id);
                 node = newNode;
                 node.dataRowId = row.id;
+                node.dataRowKey = rowId;
                 node.carriesData = false;
             }
             else {

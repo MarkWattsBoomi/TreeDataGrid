@@ -595,6 +595,10 @@
 
 .tdg-scroller {
     overflow:scroll;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
 }
 
 .tdg-scroller-content {
@@ -1000,6 +1004,9 @@
     width: 100%;
     height: 100%;
     display: flex;
+}
+
+.tdgr-cell-inner-active {
     cursor: pointer;
 }
 
@@ -1040,7 +1047,11 @@
     display: flex;
     flex-direction: row;
     background-color: #eee;
-    position: relative;
+    position: sticky;
+    top:0;
+    left:0;
+    right:0;
+    z-index: 10;
 }
 
 .tdgh-heads {

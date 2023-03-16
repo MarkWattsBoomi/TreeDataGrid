@@ -22,6 +22,9 @@ export class oDataTreeNode {
     //flag to say it carries data
     carriesData: boolean;
 
+    //the row's key, part of the dataRowId
+    dataRowKey: string
+
     constructor(label: string, parent: oData | oDataTreeNode) {
         this.tree = new Map();
         this.id = crypto.randomUUID();

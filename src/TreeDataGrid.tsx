@@ -25,10 +25,14 @@ export default class TreeDataGrid extends FlowComponent {
 
    selectedCell: string;
 
+   rowElements: Map<string, TreeDataGridRow>;
+
    constructor(props: any) {
       super(props);
       this.flowMoved = this.flowMoved.bind(this);
       this.cellClicked = this.cellClicked.bind(this);
+      this.setRowElement = this.setRowElement.bind(this);
+      this.rowElements = new Map();
       let selectedCell: string = sessionStorage.getItem(this.componentId+":selectedCell") || "";
       this.state={treeWidthPercent: 30, selectedCell: selectedCell}
    }
@@ -55,6 +59,12 @@ export default class TreeDataGrid extends FlowComponent {
    async componentWillUnmount() {
       await super.componentWillUnmount();
       (manywho as any).eventManager.removeDoneListener(this.componentId);
+   }
+
+   setRowElement(key: string, element: TreeDataGridRow) {
+      if(element){
+         this.rowElements.set(key,element);
+      }
    }
 
    async loadDataModel() {
@@ -84,24 +94,21 @@ export default class TreeDataGrid extends FlowComponent {
       let stateTypeName: string = this.getAttribute("stateTypeName");
       if(stateTypeName) {
          let item: FlowObjectData = this.data.makeObjectData(key,stateTypeName);
-         this.setStateValue(item);
+         await this.setStateValue(item);
       }
       else {
          console.log("Not stateTypeName attribute set, cannot save selected cell to Flow");
       }
       let outcomeName: string = this.getAttribute("onCellSelect");
       if(outcomeName && this.outcomes[outcomeName]) {
-         this.triggerOutcome(outcomeName);
+         await this.triggerOutcome(outcomeName);
       }
       else {
          if(this.model.hasEvents) {
             manywho.engine.sync(this.flowKey);
          }
-         else {
-            this.setState({selectedCell: rowKey});
-         }
       }
-      
+      this.setState({selectedCell: rowKey});
    }
 
    render() {
@@ -129,12 +136,15 @@ export default class TreeDataGrid extends FlowComponent {
          // build tree
          let isFirst: boolean = true;
          this.data.tree.forEach((nodeId: string) => {
+            let node: oDataTreeNode = this.data.treeNodes.get(nodeId);
             content.push(
                <TreeDataGridRow 
                   tdg={this}
                   nodeId={nodeId}
                   level={0}
                   expanded={isFirst}
+                  key={node.dataRowKey}
+                  ref={(element: TreeDataGridRow) => {this.setRowElement(node.dataRowKey, element)}}
                />
             );
             isFirst=false;
@@ -165,6 +175,7 @@ export default class TreeDataGrid extends FlowComponent {
                >
                   {content}
                </div>
+               <div style={{flexGrow:1}}/>
             </div>
             
       </div>

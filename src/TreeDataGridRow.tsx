@@ -6,11 +6,26 @@ import TreeDataGrid from "./TreeDataGrid";
 import "./TreeDataGridRow.css"
 
 export class TreeDataGridRow extends React.Component<any,any> {
+
+    rowElements: Map<string, TreeDataGridRow> ;
+
     constructor(props: any) {
         super(props);
         this.toggleExpanded = this.toggleExpanded.bind(this);
         this.cellClick = this.cellClick.bind(this);
+        this.setRowElement = this.setRowElement.bind(this);
+        this.rowElements = new Map();
         this.state = {expanded: this.props.expanded || false}
+    }
+
+    componentDidMount(): void {
+        this.setState({expanded: this.props.expanded || false});
+    }
+
+    setRowElement(key: string, element: TreeDataGridRow) {
+        if(element){
+            this.rowElements.set(key,element);
+        }
     }
 
     toggleExpanded() {
@@ -79,19 +94,22 @@ export class TreeDataGridRow extends React.Component<any,any> {
 
         // are there any child nodes?  if so is this node expanded then add in children
         if(treeNode.tree?.size > 0) {
-            if(this.state.expanded) {
+            //if(this.state.expanded) {
                 treeNode.tree.forEach((nodeId: string) => {
+                    let node: oDataTreeNode = tdg.data.treeNodes.get(nodeId);
                     children.push(
                         <TreeDataGridRow 
                             tdg={this.props.tdg}
                             parent={this}
                             nodeId={nodeId}
+                            key={node.dataRowKey}
                             level={this.props.level+1}
                             expanded={this.props.expanded}
+                            ref={(element: TreeDataGridRow) => {this.setRowElement(node.dataRowKey, element)}}
                         />
                     );
                 });
-            }
+            //}
         }
         
         let dataRow: oDataRow;
@@ -116,7 +134,7 @@ export class TreeDataGridRow extends React.Component<any,any> {
                     cellClass += " tdgr-cell-inner-selected"
                 }
             }
-            if(dataRow && children.length===0){
+            if(dataRow && (treeNode.carriesData || this.state.expanded===false)){
                 val = dataRow.cols.get(col.developerName);
             }
             cols.push(
@@ -138,9 +156,14 @@ export class TreeDataGridRow extends React.Component<any,any> {
             );
         });
 
+        let childrenStyle: CSSProperties = {};
+        if(this.state.expanded===false) {
+            childrenStyle.display="none";
+        }
         return (
             <div
                 className="tdgr"
+                key={treeNode.dataRowKey}
             >
                 <div
                     className="tdgr-cells"
@@ -149,6 +172,7 @@ export class TreeDataGridRow extends React.Component<any,any> {
                 </div>
                 <div
                     className="tdgr-children"
+                    style={childrenStyle}
                 >
                     {children}
                 </div>
