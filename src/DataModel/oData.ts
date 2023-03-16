@@ -30,6 +30,7 @@ export class oData {
 
     // unused but needed to overlap oDataTree
     dataRowId: string;
+    carriesData: boolean;
 
     dataGridColumns: FlowDisplayColumn[];
     
@@ -69,6 +70,8 @@ export class oData {
         if(data && data.items.length > 0){
             data.items.forEach((item: FlowObjectData) => {
                 let row: oDataRow = oDataRow.parseObjectData(item, odata.config);
+                odata.ingestRow(row);
+                /*
                 odata.rows.set(row.id, row);
                 let node: oData | oDataTreeNode = odata;
                 row.tree.forEach((treeNode: string) => {
@@ -85,9 +88,42 @@ export class oData {
                 });
                 // node now has lowest level in it, add the row
                 node.dataRowId = row.id;
+                */
             });
         }
         return odata;
+    }
+
+    private ingestRow(row: oDataRow) {
+        this.rows.set(row.id, row);
+        let node: oData | oDataTreeNode = this;
+        let rowId: string="";
+        row.tree.forEach((treeNode: string) => {
+            if(rowId.length > 0) {
+                rowId += "^^";
+            }
+            rowId += treeNode;
+            if(!node.tree.has(treeNode)){
+                let newNode : oDataTreeNode = new oDataTreeNode(treeNode,node);
+                this.treeNodes.set(newNode.id,newNode);
+                node.tree.set(treeNode, newNode.id);
+                node = newNode;
+                node.dataRowId = row.id;
+                node.carriesData = false;
+            }
+            else {
+                node = this.treeNodes.get(node.tree.get(treeNode));
+            }
+            
+        });
+        // node now has lowest level in it, add the row
+        node.dataRowId = row.id;
+        node.carriesData = true;
+    }
+
+    getRollupRow(key: string ) : oDataRow {
+        let node: oDataTreeNode = this.treeNodes.get(key);
+        return node.getRollupRow(this.treeNodes, this.rows,this.dataGridColumns);
     }
 
     makeObjectData(rowId: string, developerName: string) : FlowObjectData {

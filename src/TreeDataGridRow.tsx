@@ -77,6 +77,7 @@ export class TreeDataGridRow extends React.Component<any,any> {
             </div>
         );
 
+        // are there any child nodes?  if so is this node expanded then add in children
         if(treeNode.tree?.size > 0) {
             if(this.state.expanded) {
                 treeNode.tree.forEach((nodeId: string) => {
@@ -93,22 +94,36 @@ export class TreeDataGridRow extends React.Component<any,any> {
             }
         }
         
-        let dataRow: oDataRow = tdg.data.rows.get(treeNode.dataRowId);
+        let dataRow: oDataRow;
+
+        //if this is expanded then get the actual data row, otherwise get the rollup row.
+        if(this.state.expanded) {
+            dataRow = tdg.data.rows.get(treeNode.dataRowId);
+        }
+        else {
+            dataRow = tdg.data.getRollupRow(treeNode.id);
+        }
+
         tdg.data.dataGridColumns?.forEach((col: FlowDisplayColumn) => {
             let val: any = "";
             let cellClass: string ="tdgr-cell-inner";
+            let onClick: any;
             let key: string = treeNode.dataRowId + ":" + col.developerName;
-            if(tdg.state.selectedCell === key) {
-                cellClass += " tdgr-cell-inner-selected"
+            if(this.props.level===2){ // this should restrict the cell activeness based on being the lvl 3 node
+                onClick=(e: any) =>{this.cellClick(treeNode.dataRowId,col.developerName)};
+                cellClass += " tdgr-cell-inner-active";
+                if(tdg.state.selectedCell === key) {
+                    cellClass += " tdgr-cell-inner-selected"
+                }
             }
-            if(treeNode.tree?.size === 0){
+            if(dataRow && children.length===0){
                 val = dataRow.cols.get(col.developerName);
             }
             cols.push(
                 <div
                     className="tdgr-cell tdgr-cell-data"
                     style={cellStyle}
-                    onClick={(e: any) =>{this.cellClick(treeNode.dataRowId,col.developerName)}}
+                    onClick={onClick}
                 >
                     <div
                         className={cellClass}
