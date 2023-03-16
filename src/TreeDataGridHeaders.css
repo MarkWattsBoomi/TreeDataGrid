@@ -1,0 +1,33 @@
+.tdgh {
+    display: flex;
+    flex-direction: row;
+    background-color: #eee;
+    position: relative;
+}
+
+.tdgh-heads {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    flex-grow: 1;
+}
+
+.tdgh-head {
+    display: flex;
+    flex-direction: row;
+    border-right: 1px solid #ddd;
+}
+
+.tdgh-head-tree {
+    border-right: 2px solid #ccc;
+    padding-left: 1rem;
+}
+
+.tdgh-head-value {
+    margin: auto;
+}
+
+.tdgh-spacer {
+    width: 18px;
+    flex-grow: 0;
+}

@@ -1,0 +1,32 @@
+{
+  "name": "treedatagrid",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.ts",
+  "scripts": {
+    "start": "webpack-dev-server",
+    "build": "webpack --config webpack.production.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "css-loader": "^6.7.3",
+    "fcmkit": "^1.0.10",
+    "flow-component-model": "^1.7.48",
+    "react": "^18.2.0",
+    "source-map-loader": "^4.0.1",
+    "ts-loader": "^9.4.2",
+    "webpack": "^5.76.1",
+    "webpack-cli": "^5.0.1",
+    "webpack-dev-server": "^4.12.0"
+  },
+  "flow": {
+    "filenames": {
+      "js": "treedatagrid.js",
+      "css": "treedatagrid.css"
+    }
+  },
+  "devDependencies": {
+    "@types/react": "^18.0.28"
+  }
+}
