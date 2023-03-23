@@ -1,8 +1,8 @@
 import React, { CSSProperties } from 'react';
-import { eLoadingState, FlowComponent, FlowField, FlowObjectData } from 'flow-component-model';
+import { eContentType, eLoadingState, FlowComponent, FlowField, FlowObjectData, FlowObjectDataArray, FlowObjectDataProperty } from 'flow-component-model';
 import './TreeDataGrid.css';
 import { FCMModal, FCMContextMenu } from 'fcmkit';
-import { oData, oDataConfig } from './DataModel/oData';
+import { oData, oDataConfig, oDataConfigFilters } from './DataModel/oData';
 import { TreeDataGridRow } from './TreeDataGridRow';
 import { TreeDataGridHeaders } from './TreeDataGridHeaders';
 import { oDataRow } from './DataModel/oDataRow';
@@ -73,6 +73,21 @@ export default class TreeDataGrid extends FlowComponent {
       conf.displayColumns = this.model.displayColumns;
       conf.lastTreeColumn = this.getAttribute("lastTreeColumn");
       conf.stringModelFieldName = this.getAttribute("stringModelFieldName");
+      let filterFieldName: string = this.getAttribute("filterFieldName");
+      if(filterFieldName) {
+         let filters: FlowField = await this.loadValue(filterFieldName);
+         /* debug simulation
+         filters.value = new FlowObjectDataArray();
+         let filter: FlowObjectData = FlowObjectData.newInstance("a");
+         filter.addProperty(FlowObjectDataProperty.newInstance("developerName",eContentType.ContentString,"Account"));
+         filter.addProperty(FlowObjectDataProperty.newInstance("value",eContentType.ContentString,"A1010"));
+         filters.value.addItem(filter);
+         */
+         if(filters && filters.value){
+            conf.filters = new oDataConfigFilters(filters.value as FlowObjectDataArray)
+         }
+      }
+      
       //if we were told the name of a field to get the data from in attribute "stringModelFieldName" then load it
       if(this.getAttribute("stringModelFieldName","").length > 0){
          let fld: FlowField = await this.loadValue(this.getAttribute("stringModelFieldName"));

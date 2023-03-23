@@ -1,4 +1,4 @@
-import { FlowDisplayColumn, FlowObjectData, FlowObjectDataProperty } from "flow-component-model";
+import { eContentType, FlowDisplayColumn, FlowObjectData, FlowObjectDataProperty } from "flow-component-model";
 import { oDataConfig } from "./oData";
 
 export class oDataRow {
@@ -16,6 +16,34 @@ export class oDataRow {
     // parses a generic JSON object
     public static parseObject(obj: any, conf: oDataConfig) : oDataRow {
         let row: oDataRow = new oDataRow();
+        let inTree: boolean = true;
+        let key: string="";
+        
+        conf.displayColumns?.forEach((col: FlowDisplayColumn) => {
+            let val: any;
+            if(col.contentType === eContentType.ContentNumber) {
+                val=parseFloat(obj[col.developerName] || "");
+            }
+            else {
+                val=obj[col.developerName];
+            }
+            if(inTree) {
+                // we are extracting tree node values
+                row.tree.set(col.developerName, val);
+                if(key.length>0) {
+                    key=key + "^^";
+                }
+                key = key + val;
+
+                if(col.developerName===conf.lastTreeColumn) {
+                    inTree=false;
+                }
+            }
+            else {
+                row.cols.set(col.developerName, val)
+            }
+        });
+        row.id = key;
 
         return row;
     }

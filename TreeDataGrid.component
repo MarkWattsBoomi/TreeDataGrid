@@ -1,0 +1,49 @@
+{
+  "attributes": {
+    "onCellSelect": "The name of the outcome to trigger when a cell is selected.",
+    "stateTypeName": "The name of the Flow Type for the state value.",
+    "lastTreeColumn": "The developer name of the last column which is rendered in the tree.  Subsequent columns are rendered in the data grid.",
+    "filterFieldName": "The name of a FlowValue containing the filters.",
+    "stringModelFieldName": "If populated the component will not try to read the datasource from the standard one but consider this as the Flow field name containing a JSON string with the data in it."
+  },
+  "configurationEditors": [
+    "LABEL",
+    "WIDTH",
+    "HEIGHT",
+    "DATA_SOURCE_LIST",
+    "DATA_PRESENTATION",
+    "STATE_VALUE"
+  ],
+  "dateCreated": "0001-01-01T00:00:00+00:00",
+  "dateModified": "2023-03-23T15:00:06.7368762+00:00",
+  "designTimeImageURL": null,
+  "designTimeRenderType": "TABLE",
+  "developerName": "TreeDataGrid",
+  "developerSummary": "A collapsible table driven by a tree",
+  "elementType": "CUSTOM_PAGE_COMPONENT",
+  "icon": "Table",
+  "id": "79fb44d3-2baf-49ac-93c7-b222fdd7151a",
+  "key": "treedatagrid",
+  "legacyScriptURL": "http://localhost:8080/treedatagrid.js",
+  "legacyStyleSheetURL": "http://localhost:8080/treedatagrid.css",
+  "scriptURL": null,
+  "styleSheetURL": null,
+  "whoCreated": {
+    "email": "markwatts@boomi.com",
+    "firstName": "Mark",
+    "id": "18790e75-d4cc-4a94-aa1c-b889b6b50f7d",
+    "lastName": "Watts"
+  },
+  "whoModified": {
+    "email": "markwatts@boomi.com",
+    "firstName": "Mark",
+    "id": "18790e75-d4cc-4a94-aa1c-b889b6b50f7d",
+    "lastName": "Watts"
+  },
+  "whoOwner": {
+    "email": "markwatts@boomi.com",
+    "firstName": "Mark",
+    "id": "18790e75-d4cc-4a94-aa1c-b889b6b50f7d",
+    "lastName": "Watts"
+  }
+}
