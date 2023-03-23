@@ -15,6 +15,10 @@ export class oDataConfig {
 
     // a list of filters to apply to data
     filters: oDataConfigFilters;
+
+    constructor() {
+        this.filters = new oDataConfigFilters(null);
+    }
 }
 
 export class oDataConfigFilters {
@@ -23,7 +27,7 @@ export class oDataConfigFilters {
 
     constructor(filters: FlowObjectDataArray) {
         this.filters = [];
-        filters.items?.forEach((item: FlowObjectData) => {
+        filters?.items?.forEach((item: FlowObjectData) => {
             this.filters.push(
                 new oDataConfigFilter(
                     item.properties["developerName"].value as string,
