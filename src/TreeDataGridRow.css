@@ -44,6 +44,8 @@
 
 .tdgr-cell-tree{
     border-right: 2px solid #ccc;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .tdgr-cell-tree-label{
