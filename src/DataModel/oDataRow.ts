@@ -6,11 +6,14 @@ export class oDataRow {
     id: string;
     tree: Map<string,any>;
     cols: Map<string,any>;
+    all: Map<string,any>;
+    include: boolean = true;
 
     constructor() {
         this.id=crypto.randomUUID();   
         this.tree = new Map();
         this.cols = new Map();
+        this.all = new Map();
     }
 
     // parses a generic JSON object
@@ -18,6 +21,10 @@ export class oDataRow {
         let row: oDataRow = new oDataRow();
         let inTree: boolean = true;
         let key: string="";
+
+        Object.keys(obj).forEach((key: string) => {
+            row.all.set(key, obj[key]);
+        });
         
         conf.displayColumns?.forEach((col: FlowDisplayColumn) => {
             let val: any;
@@ -54,6 +61,10 @@ export class oDataRow {
         // flag to say we are reading tree attributes, will flip to false when we see the "lastTreeField" one
         let inTree: boolean = true;
         let key: string="";
+
+        Object.keys(obj.properties).forEach((key: string) => {
+            row.all.set(key, obj.properties[key].value);
+        });
         conf.displayColumns?.forEach((col: FlowDisplayColumn) => {
             if(inTree) {
                 // we are extracting tree node values

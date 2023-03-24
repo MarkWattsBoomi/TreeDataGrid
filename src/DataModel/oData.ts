@@ -1,4 +1,4 @@
-import { FlowDisplayColumn, FlowObjectData, FlowObjectDataArray } from "flow-component-model";
+import { eContentType, FlowDisplayColumn, FlowObjectData, FlowObjectDataArray } from "flow-component-model";
 import { oDataRow } from "./oDataRow";
 import { oDataTreeNode } from "./oDataTreeNode";
 
@@ -16,19 +16,41 @@ export class oDataConfig {
     // a list of filters to apply to data
     filters: oDataConfigFilters;
 
+    // a list of fieldDeveloperNames for which we will show a filter
+    filterFields: Map<string,any[]>;
+
     constructor() {
         this.filters = new oDataConfigFilters(null);
+        this.filterFields = new Map();
+    }
+
+    setFilterFields(flds: string) {
+        let items: string[] = flds.split(",");
+        items?.forEach((item: string) => {
+            let i: string = item.trim();
+            if(i.length > 0) {
+                this.filterFields.set(i,[]);
+                this.filters.filters.set(i,new oDataConfigFilter(i,null));
+            }
+        });
+    }
+
+    sortFilterFields() {
+        this.filterFields.forEach((values: any[]) => {
+            values = values.sort((a,b)=>{return a-b})
+        });
     }
 }
 
 export class oDataConfigFilters {
     // a list of filters to apply to data
-    filters: oDataConfigFilter[];
+    filters: Map<string,oDataConfigFilter>;
 
     constructor(filters: FlowObjectDataArray) {
-        this.filters = [];
+        this.filters = new Map();
         filters?.items?.forEach((item: FlowObjectData) => {
-            this.filters.push(
+            this.filters.set(
+                item.properties["developerName"].value as string,
                 new oDataConfigFilter(
                     item.properties["developerName"].value as string,
                     item.properties["value"].value as string
@@ -40,12 +62,25 @@ export class oDataConfigFilters {
 
     rowMatches(row: oDataRow, colDefs: FlowDisplayColumn[]) : boolean {
         let matches: boolean = true;
-        if(this.filters.length > 0) {
+        if(this.filters.size > 0) {
             this.filters.forEach((filter: oDataConfigFilter) => {
                 if(filter.rowMatches(row, colDefs) === false) {
                     matches = false;
                 }
             });
+        }
+        return matches;
+    }
+
+    // tests if the passed value matches the value set for the supplied developer name
+    // used by filter combos to pre-select
+    valMatches(developerName: string, value: any) : boolean {
+        let matches: boolean = true;
+        let filter = this.filters.get(developerName);
+        if(filter){
+            if(filter.value!==value){
+                matches=false;
+            }
         }
         return matches;
     }
@@ -72,9 +107,10 @@ export class oDataConfigFilter {
         });
 
         if(colDef) {
-            let val: any = row.cols.get(colDef.developerName) || row.tree.get(colDef.developerName);
+            let val: any = row.all.get(colDef.developerName);
             if(this.value && this.value.length>0){
-                if(val && val === this.value) {
+                let thisval: any;
+                if(val && (val+"") === this.value) {
                     matches = true;
                 }
                 else {
@@ -99,6 +135,7 @@ export class oData {
     
     // every row of data keyed on row id
     rows: Map<string,oDataRow>;
+    //filteredRows: Map<string,oDataRow>;
 
     // unused but needed to overlap oDataTree
     dataRowId: string;
@@ -134,6 +171,8 @@ export class oData {
                 odata.ingestRow(row);
             });
         }
+        conf.sortFilterFields();
+        odata.filterRows();
         return odata;
     }
 
@@ -145,40 +184,58 @@ export class oData {
                 odata.ingestRow(row);
             });
         }
+        conf.sortFilterFields();
+        odata.filterRows();
         return odata;
     }
 
     private ingestRow(row: oDataRow) {
-        if(this.config.filters.rowMatches(row, this.config.displayColumns)) {
-            this.rows.set(row.id, row);
-            let node: oData | oDataTreeNode = this;
-            let rowId: string="";
-            row.tree.forEach((treeNode: string) => {
-                if(rowId.length > 0) {
-                    rowId += "^^";
+        // add all possible filter values to filter map elements
+        this.config.filterFields.forEach((values: any[], developerName: string) => {
+            let rowVal: any = row.all.get(developerName);
+            if(rowVal) {
+                if(values.indexOf(rowVal) < 0) {
+                    values.push(rowVal);
                 }
-                rowId += treeNode;
-                if(!node.tree.has(treeNode)){
-                    let newNode : oDataTreeNode = new oDataTreeNode(treeNode,node);
-                    this.treeNodes.set(newNode.id,newNode);
-                    node.tree.set(treeNode, newNode.id);
-                    node = newNode;
-                    node.dataRowId = row.id;
-                    node.dataRowKey = rowId;
-                    node.carriesData = false;
-                }
-                else {
-                    node = this.treeNodes.get(node.tree.get(treeNode));
-                }
-                
-            });
-            // node now has lowest level in it, add the row
-            node.dataRowId = row.id;
-            node.carriesData = true;
-        }
-        else {
-            //row excluded
-        }
+            }
+            
+        });
+
+        //if(this.config.filters.rowMatches(row, this.config.displayColumns)) {
+        this.rows.set(row.id, row);
+       
+        let node: oData | oDataTreeNode = this;
+        let rowId: string="";
+        row.tree.forEach((treeNode: string) => {
+            if(rowId.length > 0) {
+                rowId += "^^";
+            }
+            rowId += treeNode;
+            if(!node.tree.has(treeNode)){
+                let newNode : oDataTreeNode = new oDataTreeNode(treeNode,node);
+                this.treeNodes.set(newNode.id,newNode);
+                node.tree.set(treeNode, newNode.id);
+                node = newNode;
+                node.dataRowId = row.id;
+                node.dataRowKey = rowId;
+                node.carriesData = false;
+            }
+            else {
+                node = this.treeNodes.get(node.tree.get(treeNode));
+            }
+            
+        });
+        // node now has lowest level in it, add the row
+        node.dataRowId = row.id;
+        node.carriesData = true;       
+    }
+
+    filterRows() {
+        // iterate over rows, flagging them included
+        this.rows.forEach((row: oDataRow) => {
+            row.include = this.config.filters.rowMatches(row, this.config.displayColumns);
+        });
+        
     }
 
     getRollupRow(key: string,  ) : oDataRow {
@@ -189,5 +246,7 @@ export class oData {
     makeObjectData(rowId: string, developerName: string) : FlowObjectData {
         return this.rows.get(rowId).makeObjectData(developerName,this.config);
     }
+
+    
 }
 

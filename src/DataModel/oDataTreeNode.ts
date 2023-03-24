@@ -1,4 +1,4 @@
-import { FlowDisplayColumn } from "flow-component-model";
+import { eContentType, FlowDisplayColumn } from "flow-component-model";
 import { oData, oDataConfig } from "./oData";
 import { oDataRow } from "./oDataRow";
 
@@ -43,21 +43,44 @@ export class oDataTreeNode {
                     row.cols.set(col.developerName,childRow.cols.get(col.developerName));
                 }
                 else {
-                    let val: number = row.cols.get(col.developerName) as number;
-                    val += childRow.cols.get(col.developerName);
+                    let val: any;
+                    let childVal: any;
+                    switch(col.contentType){
+                        case eContentType.ContentNumber:
+                            val = parseFloat(row.cols.get(col.developerName) || "0");
+                            childVal = parseFloat(childRow.cols.get(col.developerName) || "0");
+                            break;
+                        default:
+                            val = row.cols.get(col.developerName) || "";
+                            childVal = childRow.cols.get(col.developerName) || "";
+                            break;
+                    }
+                    val += childVal;
                     row.cols.set(col.developerName,val);
                 }
             })
         });
-        if(this.dataRowId && this.carriesData){
-            let tRow: oDataRow = rows.get(this.dataRowId);
+        let tRow: oDataRow = rows.get(this.dataRowId);
+        if(this.dataRowId && this.carriesData && tRow.include){
+            
             cols.forEach((col: FlowDisplayColumn) => {
                 if(!row.cols.has(col.developerName)) {
                     row.cols.set(col.developerName,tRow.cols.get(col.developerName));
                 }
                 else {
-                    let val: number = row.cols.get(col.developerName) as number;
-                    val += tRow.cols.get(col.developerName);
+                    let val: any;
+                    let childVal: any;
+                    switch(col.contentType){
+                        case eContentType.ContentNumber:
+                            val = parseFloat(row.cols.get(col.developerName) || "0");
+                            childVal = parseFloat(tRow.cols.get(col.developerName) || "0");
+                            break;
+                        default:
+                            val = row.cols.get(col.developerName) || "";
+                            childVal = tRow.cols.get(col.developerName) || "";
+                            break;
+                    }
+                    val += childVal;
                     row.cols.set(col.developerName,val);
                 }
             });

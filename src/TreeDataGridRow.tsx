@@ -92,28 +92,7 @@ export class TreeDataGridRow extends React.Component<any,any> {
             </div>
         );
 
-        // are there any child nodes?  if so is this node expanded then add in children
-        if(treeNode.tree?.size > 0) {
-            //if(this.state.expanded) {
-                treeNode.tree.forEach((nodeId: string) => {
-                    let node: oDataTreeNode = tdg.data.treeNodes.get(nodeId);
-                    children.push(
-                        <TreeDataGridRow 
-                            tdg={this.props.tdg}
-                            parent={this}
-                            nodeId={nodeId}
-                            key={node.dataRowKey}
-                            level={this.props.level+1}
-                            expanded={this.props.expanded}
-                            ref={(element: TreeDataGridRow) => {this.setRowElement(node.dataRowKey, element)}}
-                        />
-                    );
-                });
-            //}
-        }
-        
         let dataRow: oDataRow;
-
         //if this is expanded then get the actual data row, otherwise get the rollup row.
         if(this.state.expanded) {
             dataRow = tdg.data.rows.get(treeNode.dataRowId);
@@ -121,6 +100,31 @@ export class TreeDataGridRow extends React.Component<any,any> {
         else {
             dataRow = tdg.data.getRollupRow(treeNode.id);
         }
+
+        // are there any child nodes?  if so is this node expanded then add in children
+        if(treeNode.tree?.size > 0) {
+            //if(this.state.expanded) {
+                treeNode.tree.forEach((nodeId: string) => {
+                    let node: oDataTreeNode = tdg.data.treeNodes.get(nodeId);
+                    let row: oDataRow = tdg.data.rows.get(node.dataRowId);
+                    if(node && (!node.carriesData || ( node.carriesData && row?.include))){
+                        children.push(
+                            <TreeDataGridRow 
+                                tdg={this.props.tdg}
+                                parent={this}
+                                nodeId={nodeId}
+                                key={node.dataRowKey}
+                                level={this.props.level+1}
+                                expanded={this.props.expanded}
+                                ref={(element: TreeDataGridRow) => {this.setRowElement(node.dataRowKey, element)}}
+                            />
+                        );
+                    }
+                });
+            //}
+        }
+        
+        
 
         tdg.data.dataGridColumns?.forEach((col: FlowDisplayColumn) => {
             let val: any = "";

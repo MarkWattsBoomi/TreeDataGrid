@@ -593,6 +593,42 @@
 
 }
 
+.tdg-filters {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    padding: 0.5rem;
+    background-color: #f5f5f5;
+}
+
+.tdg-filter {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    margin-right: 1rem;
+}
+
+.tdg-filter-label {
+    font-size: 0.9rem;
+    margin-right: 1rem;
+}
+
+.tdg-filters-select {
+    appearance: revert !important;
+    padding: 0.2rem 2rem 0.2rem 1rem;
+    font-size: 0.9rem !important;
+    background-image: none !important;
+}
+
+.tdg-filters-select::after,
+.tdg-filters-select::before {
+    display: none !important;
+}
+
+.tdg-filters-select-option {
+    padding: 0.2rem 2rem 0.2rem 1rem;
+}
+
 .tdg-scroller {
     overflow:scroll;
     position: relative;

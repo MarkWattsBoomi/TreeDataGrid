@@ -2,7 +2,7 @@ import React, { CSSProperties } from 'react';
 import { eContentType, eLoadingState, FlowComponent, FlowField, FlowObjectData, FlowObjectDataArray, FlowObjectDataProperty } from 'flow-component-model';
 import './TreeDataGrid.css';
 import { FCMModal, FCMContextMenu } from 'fcmkit';
-import { oData, oDataConfig, oDataConfigFilters } from './DataModel/oData';
+import { oData, oDataConfig, oDataConfigFilter, oDataConfigFilters } from './DataModel/oData';
 import { TreeDataGridRow } from './TreeDataGridRow';
 import { TreeDataGridHeaders } from './TreeDataGridHeaders';
 import { oDataRow } from './DataModel/oDataRow';
@@ -32,9 +32,10 @@ export default class TreeDataGrid extends FlowComponent {
       this.flowMoved = this.flowMoved.bind(this);
       this.cellClicked = this.cellClicked.bind(this);
       this.setRowElement = this.setRowElement.bind(this);
+      this.filterChanged = this.filterChanged.bind(this);
       this.rowElements = new Map();
       let selectedCell: string = sessionStorage.getItem(this.componentId+":selectedCell") || "";
-      this.state={treeWidthPercent: 30, selectedCell: selectedCell}
+      this.state={treeWidthPercent: 40, selectedCell: selectedCell}
    }
 
 
@@ -73,16 +74,18 @@ export default class TreeDataGrid extends FlowComponent {
       conf.displayColumns = this.model.displayColumns;
       conf.lastTreeColumn = this.getAttribute("lastTreeColumn");
       conf.stringModelFieldName = this.getAttribute("stringModelFieldName");
+      conf.setFilterFields(this.getAttribute("filterFieldNames","SM"))
       let filterFieldName: string = this.getAttribute("filterFieldName");
       if(filterFieldName) {
          let filters: FlowField = await this.loadValue(filterFieldName);
-         /* debug simulation
+         //debug simulation
+         
          filters.value = new FlowObjectDataArray();
          let filter: FlowObjectData = FlowObjectData.newInstance("a");
-         filter.addProperty(FlowObjectDataProperty.newInstance("developerName",eContentType.ContentString,"Account"));
+         filter.addProperty(FlowObjectDataProperty.newInstance("developerName",eContentType.ContentString,"SM"));
          filter.addProperty(FlowObjectDataProperty.newInstance("value",eContentType.ContentString,"A1010"));
          filters.value.addItem(filter);
-         */
+         
          if(filters && filters.value){
             conf.filters = new oDataConfigFilters(filters.value as FlowObjectDataArray)
          }
@@ -126,6 +129,15 @@ export default class TreeDataGrid extends FlowComponent {
       this.setState({selectedCell: rowKey});
    }
 
+   filterChanged(e: any) {
+      let filter: oDataConfigFilter = this.data.config.filters.filters.get(e.currentTarget.id);
+      if(filter){
+         filter.value = e.currentTarget.options[e.currentTarget.selectedIndex].value;
+      }
+      this.data.filterRows();
+      this.forceUpdate();
+   }
+
    render() {
       if(this.loadingState !== eLoadingState.ready) {
          return this.lastContent;
@@ -147,24 +159,71 @@ export default class TreeDataGrid extends FlowComponent {
       }
       
       let content: any[] = [];
+      let filters: any[] = [];
       if(this.data){
          // build tree
          let isFirst: boolean = true;
          this.data.tree.forEach((nodeId: string) => {
             let node: oDataTreeNode = this.data.treeNodes.get(nodeId);
-            content.push(
-               <TreeDataGridRow 
-                  tdg={this}
-                  nodeId={nodeId}
-                  level={0}
-                  expanded={isFirst}
-                  key={node.dataRowKey}
-                  ref={(element: TreeDataGridRow) => {this.setRowElement(node.dataRowKey, element)}}
-               />
-            );
+            let row: oDataRow = this.data.rows.get(node.dataRowId);
+            if(node && (!node.carriesData || ( node.carriesData && row?.include))){
+               content.push(
+                  <TreeDataGridRow 
+                     tdg={this}
+                     nodeId={nodeId}
+                     level={0}
+                     expanded={isFirst}
+                     key={node.dataRowKey}
+                     ref={(element: TreeDataGridRow) => {this.setRowElement(node.dataRowKey, element)}}
+                  />
+               );
+            }
             isFirst=false;
          });
+
+         this.data.config.filterFields.forEach((values: any[], key: string) =>{
+            let options: any[] = [];
+            options.push(
+               <option
+                  className='tdg-filters-select-option'
+                  value={""}
+               >
+                  {"Any"}
+               </option>
+            );
+            values.forEach((val: any) => {
+               options.push(
+                  <option
+                     className='tdg-filters-select-option'
+                     value={val}
+                     selected={this.data.config.filters.valMatches(key,val)}
+                  >
+                     {val}
+                  </option>
+               );
+            });
+            filters.push(
+               <div
+                  className='tdg-filter'
+               >
+                  <span
+                     className='tdg-filter-label'
+                  >
+                     {key}
+                  </span>
+                  <select
+                     className='tdg-filters-select'
+                     onChange={this.filterChanged}
+                     id={key}
+                  >
+                     {options}
+                  </select>
+               </div>
+            );
+         });
       }
+
+      
 
       this.lastContent = (
          <div
@@ -177,7 +236,11 @@ export default class TreeDataGrid extends FlowComponent {
             <FCMModal
                ref={(element: FCMModal) => {this.messageBox = element}}
             />
-            
+            <div
+               className='tdg-filters'
+            >
+               {filters}
+            </div>
             <div
                className='tdg-scroller'
                ref={(element: HTMLDivElement) => {this.scroller=element}}
