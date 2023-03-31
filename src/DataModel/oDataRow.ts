@@ -4,6 +4,7 @@ import { oDataConfig } from "./oData";
 export class oDataRow {
 
     id: string;
+    key: string;
     tree: Map<string,any>;
     cols: Map<string,any>;
     all: Map<string,any>;
@@ -50,7 +51,7 @@ export class oDataRow {
                 row.cols.set(col.developerName, val)
             }
         });
-        row.id = key;
+        row.key = key;
 
         return row;
     }

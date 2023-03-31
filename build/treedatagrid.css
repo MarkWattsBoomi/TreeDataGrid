@@ -629,18 +629,33 @@
     padding: 0.2rem 2rem 0.2rem 1rem;
 }
 
+.tdg-body {
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    height: 100%;
+}
+
 .tdg-scroller {
     overflow:scroll;
     position: relative;
     display: flex;
     flex-direction: column;
     height: 100%;
+    flex-basis: 80%;
 }
 
 .tdg-scroller-content {
     overflow: visible;
     display: flex;
     flex-direction: column;
+}
+
+.tdg-comments {
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    flex-basis: 20%;
 }
 
 
@@ -1056,6 +1071,8 @@
 
 .tdgr-cell-tree{
     border-right: 2px solid #ccc;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .tdgr-cell-tree-label{

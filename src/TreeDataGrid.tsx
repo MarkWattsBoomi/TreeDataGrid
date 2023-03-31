@@ -242,20 +242,28 @@ export default class TreeDataGrid extends FlowComponent {
                {filters}
             </div>
             <div
-               className='tdg-scroller'
-               ref={(element: HTMLDivElement) => {this.scroller=element}}
+               className='tdg-body'
             >
-               <TreeDataGridHeaders
-               tdg={this}
-            />
                <div
-                  className='tdg-scroller-content'
+                  className='tdg-scroller'
+                  ref={(element: HTMLDivElement) => {this.scroller=element}}
                >
-                  {content}
+                  <TreeDataGridHeaders
+                     tdg={this}
+                  />
+                  <div
+                     className='tdg-scroller-content'
+                  >
+                     {content}
+                  </div>
+                  <div style={{flexGrow:1}}/>
                </div>
-               <div style={{flexGrow:1}}/>
+               <div
+                  className='tdg-comments'
+               >
+
+               </div>
             </div>
-            
       </div>
       );
       return this.lastContent;

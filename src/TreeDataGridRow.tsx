@@ -95,7 +95,7 @@ export class TreeDataGridRow extends React.Component<any,any> {
         let dataRow: oDataRow;
         //if this is expanded then get the actual data row, otherwise get the rollup row.
         if(this.state.expanded) {
-            dataRow = tdg.data.rows.get(treeNode.dataRowId);
+            dataRow = tdg.data.getSummaryRow(treeNode.dataRowKey);
         }
         else {
             dataRow = tdg.data.getRollupRow(treeNode.id);
@@ -106,8 +106,8 @@ export class TreeDataGridRow extends React.Component<any,any> {
             //if(this.state.expanded) {
                 treeNode.tree.forEach((nodeId: string) => {
                     let node: oDataTreeNode = tdg.data.treeNodes.get(nodeId);
-                    let row: oDataRow = tdg.data.rows.get(node.dataRowId);
-                    if(node && (!node.carriesData || ( node.carriesData && row?.include))){
+                    //let row: oDataRow = tdg.data.rows.get(node.dataRowId);
+                    if(node){ //} && (!node.carriesData || ( node.carriesData && row?.include))){
                         children.push(
                             <TreeDataGridRow 
                                 tdg={this.props.tdg}
@@ -127,38 +127,41 @@ export class TreeDataGridRow extends React.Component<any,any> {
         
 
         tdg.data.dataGridColumns?.forEach((col: FlowDisplayColumn) => {
-            let val: any = "";
-            let cellClass: string ="tdgr-cell-inner";
-            let onClick: any;
-            let key: string = treeNode.dataRowId + ":" + col.developerName;
-            if(this.props.level===2){ // this should restrict the cell activeness based on being the lvl 3 node
-                onClick=(e: any) =>{this.cellClick(treeNode.dataRowId,col.developerName)};
-                cellClass += " tdgr-cell-inner-active";
-                if(tdg.state.selectedCell === key) {
-                    cellClass += " tdgr-cell-inner-selected"
+            if(col.visible){
+                let val: any = "";
+                let cellClass: string ="tdgr-cell-inner";
+                let onClick: any;
+                let key: string = treeNode.dataRowId + ":" + col.developerName;
+                if(this.props.level===2){ // this should restrict the cell activeness based on being the lvl 3 node
+                    onClick=(e: any) =>{this.cellClick(treeNode.dataRowId,col.developerName)};
+                    cellClass += " tdgr-cell-inner-active";
+                    if(tdg.state.selectedCell === key) {
+                        cellClass += " tdgr-cell-inner-selected"
+                    }
                 }
-            }
-            if(dataRow && (treeNode.carriesData || this.state.expanded===false)){
-                val = dataRow.cols.get(col.developerName);
-            }
-            cols.push(
-                <div
-                    className="tdgr-cell tdgr-cell-data"
-                    style={cellStyle}
-                    onClick={onClick}
-                >
+                if(dataRow && (treeNode.carriesData || this.state.expanded===false)){
+                    val = dataRow.all.get(col.developerName);
+                }
+                cols.push(
                     <div
-                        className={cellClass}
+                        className="tdgr-cell tdgr-cell-data"
+                        style={cellStyle}
+                        onClick={onClick}
                     >
-                        <span
-                            className="tdgr-cell-value"
+                        <div
+                            className={cellClass}
                         >
-                            {val}
-                        </span>
+                            <span
+                                className="tdgr-cell-value"
+                            >
+                                {val}
+                            </span>
+                        </div>
                     </div>
-                </div>
-            );
+                );
+            }
         });
+        
 
         let childrenStyle: CSSProperties = {};
         if(this.state.expanded===false) {

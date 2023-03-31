@@ -135,7 +135,9 @@ export class oData {
     
     // every row of data keyed on row id
     rows: Map<string,oDataRow>;
-    //filteredRows: Map<string,oDataRow>;
+
+    // the unique row keys and a map of each real row using that key
+    rowKeys: Map<string,Map<string,string>>;
 
     // unused but needed to overlap oDataTree
     dataRowId: string;
@@ -148,6 +150,7 @@ export class oData {
         this.rows = new Map();
         this.tree = new Map();
         this.treeNodes = new Map();
+        this.rowKeys = new Map();
         this.dataGridColumns = [];
         let inData: boolean = false;
         conf.displayColumns.forEach((col: FlowDisplayColumn) => {
@@ -201,8 +204,14 @@ export class oData {
             
         });
 
-        //if(this.config.filters.rowMatches(row, this.config.displayColumns)) {
+        // add every row to the base map keyed on unique id
         this.rows.set(row.id, row);
+
+        // build the map of row keys adding each row id to it child map
+        if(!this.rowKeys.has(row.key)){
+            this.rowKeys.set(row.key,new Map());
+        }
+        this.rowKeys.get(row.key).set(row.id, row.id);
        
         let node: oData | oDataTreeNode = this;
         let rowId: string="";
@@ -233,14 +242,51 @@ export class oData {
     filterRows() {
         // iterate over rows, flagging them included
         this.rows.forEach((row: oDataRow) => {
-            row.include = this.config.filters.rowMatches(row, this.config.displayColumns);
+            let include: boolean = this.config.filters.rowMatches(row, this.config.displayColumns);
+            if(include === false) {
+                //console.log("false")
+            }
+            row.include = include;
         });
         
     }
 
-    getRollupRow(key: string,  ) : oDataRow {
+    // this will get all rows that match the key and summ all their data - this is used as the data row for the lowest tree level
+    getSummaryRow(key: string) : oDataRow {
+        let sum: oDataRow = new oDataRow();
+        sum.key = key;
+        sum.include = true;
+        this.rows.values().next().value.cols.forEach((val: any, developerName: string) =>{
+            sum.all.set(developerName,0);
+        });
+        //console.log(key);
+        this.rowKeys.get(sum.key)?.forEach((rowId: string) => {
+            let row: oDataRow = this.rows.get(rowId);
+            if(row.include){
+                row.cols.forEach((val: any, developerName: string) => {
+                    if(sum.all.has(developerName)){
+                        let curr: number = sum.all.get(developerName);
+                        let add: number = parseFloat(row.all.get(developerName) || "0");
+                        let tot: number = curr + add + Number.EPSILON;
+                        let rnd: number = Number(tot.toFixed(2));
+                        sum.all.set(developerName,rnd);
+                    }
+                    else {
+                        let add: number = parseFloat(row.all.get(developerName) || "0");
+                        let tot: number = add + Number.EPSILON;
+                        let rnd: number = Number(tot.toFixed(2));
+                        sum.all.set(developerName,rnd);
+                    }
+                });
+            }
+        });
+        return sum;
+    }
+
+    // here we recieve a node key that lets us find a set of rows to add up
+    getRollupRow(key: string) : oDataRow {
         let node: oDataTreeNode = this.treeNodes.get(key);
-        return node.getRollupRow(this.treeNodes, this.rows,this.dataGridColumns);
+        return node.getRollupRow(this, this.dataGridColumns);
     }
 
     makeObjectData(rowId: string, developerName: string) : FlowObjectData {

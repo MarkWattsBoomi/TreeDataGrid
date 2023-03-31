@@ -30,18 +30,20 @@ export class TreeDataGridHeaders extends React.Component<any,any> {
         );
                 
         tdg.data.dataGridColumns?.forEach((col: FlowDisplayColumn) => {
-            cols.push(
-                <div
-                    className="tdgh-head"
-                    style={cellStyle}
-                >
-                    <span
-                        className="tdgh-head-value"
+            if(col.visible) {
+                cols.push(
+                    <div
+                        className="tdgh-head"
+                        style={cellStyle}
                     >
-                        {col.label || col.developerName}
-                    </span>
-                </div>
-            );
+                        <span
+                            className="tdgh-head-value"
+                        >
+                            {col.label || col.developerName}
+                        </span>
+                    </div>
+                );
+            }
         });
 
         return (

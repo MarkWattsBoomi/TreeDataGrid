@@ -33,58 +33,103 @@ export class oDataTreeNode {
         this.dataRowId = "";
     }
 
-    getRollupRow(tree: Map<string,oDataTreeNode>,rows: Map<string,oDataRow>,cols: FlowDisplayColumn[]) : oDataRow {
+    getRollupRow(oData: oData,cols: FlowDisplayColumn[]) : oDataRow {
         let row: oDataRow = new oDataRow();
-        this.tree.forEach((child: string) => {
-            let node: oDataTreeNode = tree.get(child);
-            let childRow: oDataRow = node.getRollupRow(tree, rows, cols);
-            cols.forEach((col: FlowDisplayColumn) => {
-                if(!row.cols.has(col.developerName)) {
-                    row.cols.set(col.developerName,childRow.cols.get(col.developerName));
-                }
-                else {
-                    let val: any;
-                    let childVal: any;
-                    switch(col.contentType){
-                        case eContentType.ContentNumber:
-                            val = parseFloat(row.cols.get(col.developerName) || "0");
-                            childVal = parseFloat(childRow.cols.get(col.developerName) || "0");
-                            break;
-                        default:
-                            val = row.cols.get(col.developerName) || "";
-                            childVal = childRow.cols.get(col.developerName) || "";
-                            break;
-                    }
-                    val += childVal;
-                    row.cols.set(col.developerName,val);
-                }
-            })
+        let val: any;
+        let childVal: any;
+        cols.forEach((col: FlowDisplayColumn) => {
+            switch(col.contentType){
+                case eContentType.ContentNumber:
+                    val = 0;
+                    val = Number(val.toFixed(2));
+                    break;
+                default:
+                    val = "";
+                    break;
+            }
+            row.all.set(col.developerName, val);
         });
-        let tRow: oDataRow = rows.get(this.dataRowId);
-        if(this.dataRowId && this.carriesData && tRow.include){
-            
-            cols.forEach((col: FlowDisplayColumn) => {
-                if(!row.cols.has(col.developerName)) {
-                    row.cols.set(col.developerName,tRow.cols.get(col.developerName));
-                }
-                else {
-                    let val: any;
-                    let childVal: any;
-                    switch(col.contentType){
-                        case eContentType.ContentNumber:
-                            val = parseFloat(row.cols.get(col.developerName) || "0");
-                            childVal = parseFloat(tRow.cols.get(col.developerName) || "0");
-                            break;
-                        default:
-                            val = row.cols.get(col.developerName) || "";
-                            childVal = tRow.cols.get(col.developerName) || "";
-                            break;
+        
+        //recurse into any child nodes
+        this.tree.forEach((child: string) => {
+            let node: oDataTreeNode = oData.treeNodes.get(child);
+            let cRow: oDataRow = oData.rows.get(node.dataRowId);
+            if(node){
+                let childRow: oDataRow = node.getRollupRow(oData, cols);
+                // blend in the child's emitted data
+                cols.forEach((col: FlowDisplayColumn) => {
+                    if(!row.all.has(col.developerName)) {
+                        switch(col.contentType){
+                            case eContentType.ContentNumber:
+                                val = parseFloat(childRow.all.get(col.developerName) || "0");
+                                val = Number(val.toFixed(2));
+                                break;
+                            default:
+                                val = childRow.all.get(col.developerName) || "";
+                                break;
+                        }
+                        row.all.set(col.developerName, val);
                     }
-                    val += childVal;
-                    row.cols.set(col.developerName,val);
-                }
-            });
-        }
+                    else {
+                        
+                        switch(col.contentType){
+                            case eContentType.ContentNumber:
+                                val = parseFloat(row.all.get(col.developerName) || "0");
+                                childVal = parseFloat(childRow.all.get(col.developerName) || "0");
+                                val += childVal;
+                                val = Number(val.toFixed(2));
+                                break;
+                            default:
+                                val = row.all.get(col.developerName) || "";
+                                childVal = childRow.all.get(col.developerName) || "";
+                                val += childVal;
+                                break;
+                        }
+                        row.all.set(col.developerName,val);
+                    }
+                });
+            }
+            
+        });
+
+        // now loop over any data rows for this node key
+        oData.rowKeys.get(this.dataRowKey)?.forEach((rowId: string) => {
+            let tRow: oDataRow = oData.rows.get(rowId);  
+            if(tRow && this.carriesData && tRow.include){
+            
+                cols.forEach((col: FlowDisplayColumn) => {
+                    if(!row.all.has(col.developerName)) {
+                        switch(col.contentType){
+                            case eContentType.ContentNumber:
+                                val = parseFloat(tRow.all.get(col.developerName) || "0");
+                                val = Number(val.toFixed(2));
+                                break;
+                            default:
+                                val = tRow.all.get(col.developerName) || "";
+                                break;
+                        }
+                        row.all.set(col.developerName, val);
+                    }
+                    else {
+                        
+                        switch(col.contentType){
+                            case eContentType.ContentNumber:
+                                val = parseFloat(row.all.get(col.developerName) || "0");
+                                childVal = parseFloat(tRow.all.get(col.developerName) || "0");
+                                val += childVal;
+                                val = Number(val.toFixed(2));
+                                break;
+                            default:
+                                val = row.all.get(col.developerName) || "";
+                                childVal = tRow.all.get(col.developerName) || "";
+                                val += childVal;
+                                break;
+                        }
+                        row.all.set(col.developerName,val);
+                    }
+                });
+            }
+        });       
         
         return row;
     }
