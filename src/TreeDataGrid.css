@@ -67,4 +67,12 @@
     flex-basis: 20%;
 }
 
+.tdg-comments-temp {
+    margin: auto;
+    display: flex;
+    flex-grow: 0;
+    flex-direction: column;
+    text-align: center;
+}
+
 

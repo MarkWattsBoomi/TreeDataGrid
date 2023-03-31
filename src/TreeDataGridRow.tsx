@@ -35,8 +35,7 @@ export class TreeDataGridRow extends React.Component<any,any> {
     cellClick(key: string, colName: string) {
         let tdg: TreeDataGrid = this.props.tdg;
         let treeNode: oDataTreeNode = tdg.data.treeNodes.get(this.props.nodeId);
-        let dataRow: oDataRow = tdg.data.rows.get(treeNode.dataRowId);
-        tdg.cellClicked(key, colName);
+        tdg.cellClicked(treeNode.dataRowKey, colName);
     }
 
     render() {
@@ -131,7 +130,7 @@ export class TreeDataGridRow extends React.Component<any,any> {
                 let val: any = "";
                 let cellClass: string ="tdgr-cell-inner";
                 let onClick: any;
-                let key: string = treeNode.dataRowId + ":" + col.developerName;
+                let key: string = treeNode.dataRowKey + ":" + col.developerName;
                 if(this.props.level===2){ // this should restrict the cell activeness based on being the lvl 3 node
                     onClick=(e: any) =>{this.cellClick(treeNode.dataRowId,col.developerName)};
                     cellClass += " tdgr-cell-inner-active";

@@ -90,7 +90,7 @@ export default class TreeDataGrid extends FlowComponent {
             conf.filters = new oDataConfigFilters(filters.value as FlowObjectDataArray)
          }
       }
-      
+      let start: Date = new Date();
       //if we were told the name of a field to get the data from in attribute "stringModelFieldName" then load it
       if(this.getAttribute("stringModelFieldName","").length > 0){
          let fld: FlowField = await this.loadValue(this.getAttribute("stringModelFieldName"));
@@ -101,6 +101,8 @@ export default class TreeDataGrid extends FlowComponent {
       else {
          this.data = oData.parseObjectDataArray(this.model.dataSource,conf);
       }
+      let end: Date = new Date();
+      console.log("loaded in " + (end.getTime() - start.getTime()))
       let selectedCell: string = sessionStorage.getItem(this.componentId+":selectedCell") || "";
       this.setState({selectedCell: selectedCell});
    }
@@ -261,7 +263,17 @@ export default class TreeDataGrid extends FlowComponent {
                <div
                   className='tdg-comments'
                >
-
+                  <div
+                     className='tdg-comments-temp'
+                  >
+                     <span>
+                        notes go here 
+                     </span>
+                     <span>
+                        {this.state.selectedCell}
+                     </span>
+                     
+                  </div>
                </div>
             </div>
       </div>
