@@ -590,7 +590,24 @@
     color: #000;
 }
 .tdg {
+    position: relative;
+}
 
+.tdg-loader {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+}
+
+.tdg-loader-content {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    margin: auto;
+    text-align: center;
+    font-size: 2rem;
 }
 
 .tdg-filters {

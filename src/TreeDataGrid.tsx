@@ -141,9 +141,7 @@ export default class TreeDataGrid extends FlowComponent {
    }
 
    render() {
-      if(this.loadingState !== eLoadingState.ready) {
-         return this.lastContent;
-      }
+      
       //handle classes attribute and hidden and size
       let className: string = 'tdg ' + this.getAttribute('classes','');
       let style: CSSProperties = {};
@@ -225,59 +223,77 @@ export default class TreeDataGrid extends FlowComponent {
          });
       }
 
-      
-
-      this.lastContent = (
-         <div
-            className={className}
-            style={style}
-         >
-            <FCMContextMenu
-               ref={(element: FCMContextMenu) => {this.contextMenu = element}}
-            />
-            <FCMModal
-               ref={(element: FCMModal) => {this.messageBox = element}}
-            />
+      if(this.loadingState !== eLoadingState.ready) {
+         this.lastContent = (
             <div
-               className='tdg-filters'
-            >
-               {filters}
-            </div>
-            <div
-               className='tdg-body'
+               className={className}
+               style={style}
             >
                <div
-                  className='tdg-scroller'
-                  ref={(element: HTMLDivElement) => {this.scroller=element}}
+                  className="tdg-loader"
                >
-                  <TreeDataGridHeaders
-                     tdg={this}
-                  />
-                  <div
-                     className='tdg-scroller-content'
+                  <span
+                     className="tdg-loader-content"
                   >
-                     {content}
-                  </div>
-                  <div style={{flexGrow:1}}/>
-               </div>
-               <div
-                  className='tdg-comments'
-               >
-                  <div
-                     className='tdg-comments-temp'
-                  >
-                     <span>
-                        notes go here 
-                     </span>
-                     <span>
-                        {this.state.selectedCell}
-                     </span>
-                     
-                  </div>
+                     Loading
+                  </span>
                </div>
             </div>
-      </div>
-      );
+         );
+      }
+      else {
+         this.lastContent = (
+            <div
+               className={className}
+               style={style}
+            >
+               <FCMContextMenu
+                  ref={(element: FCMContextMenu) => {this.contextMenu = element}}
+               />
+               <FCMModal
+                  ref={(element: FCMModal) => {this.messageBox = element}}
+               />
+               <div
+                  className='tdg-filters'
+               >
+                  {filters}
+               </div>
+               <div
+                  className='tdg-body'
+               >
+                  <div
+                     className='tdg-scroller'
+                     ref={(element: HTMLDivElement) => {this.scroller=element}}
+                  >
+                     <TreeDataGridHeaders
+                        tdg={this}
+                     />
+                     <div
+                        className='tdg-scroller-content'
+                     >
+                        {content}
+                     </div>
+                     <div style={{flexGrow:1}}/>
+                  </div>
+                  <div
+                     className='tdg-comments'
+                  >
+                     <div
+                        className='tdg-comments-temp'
+                     >
+                        <span>
+                           notes go here 
+                        </span>
+                        <span>
+                           {this.state.selectedCell}
+                        </span>
+                        
+                     </div>
+                  </div>
+               </div>
+         </div>
+         );
+      }
       return this.lastContent;
    }
 }
